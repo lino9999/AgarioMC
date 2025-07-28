@@ -1,12 +1,12 @@
 package com.Lino.agarioMC;
 
 import org.bukkit.Material;
-import org.bukkit.block.Block;
+import org.bukkit.Sound;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -17,30 +17,6 @@ public class EventListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onBlockBreak(BlockBreakEvent event) {
-        Player player = event.getPlayer();
-        Block block = event.getBlock();
-
-        if (!plugin.getGameManager().isInGame(player)) {
-            return;
-        }
-
-        event.setCancelled(true);
-
-        if (block.getType().name().contains("WOOL")) {
-            Arena arena = plugin.getArenaManager().getCurrentArena();
-            if (arena != null && arena.isInArena(block.getLocation())) {
-                WoolSpawner spawner = plugin.getGameManager().woolSpawner;
-                if (spawner.isWoolBlock(block.getLocation())) {
-                    block.setType(Material.AIR);
-                    spawner.removeWoolBlock(block.getLocation());
-                    plugin.getGameManager().collectWool(player);
-                }
-            }
-        }
-    }
-
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
@@ -49,10 +25,33 @@ public class EventListener implements Listener {
             return;
         }
 
+        if (event.getFrom().getBlockX() == event.getTo().getBlockX() &&
+                event.getFrom().getBlockY() == event.getTo().getBlockY() &&
+                event.getFrom().getBlockZ() == event.getTo().getBlockZ()) {
+            return;
+        }
+
         Arena arena = plugin.getArenaManager().getCurrentArena();
-        if (arena != null && !arena.isInArena(event.getTo())) {
+        if (arena != null && arena.isInArena(event.getFrom()) && !arena.isInArena(event.getTo())) {
             event.setCancelled(true);
             player.sendMessage("§cYou cannot leave the arena!");
+            return;
+        }
+
+        for (Item item : player.getNearbyEntities(1.5, 1.5, 1.5).stream()
+                .filter(entity -> entity instanceof Item)
+                .map(entity -> (Item) entity)
+                .toList()) {
+
+            if (item.getItemStack().getType().name().contains("WOOL")) {
+                WoolSpawner spawner = plugin.getGameManager().getWoolSpawner();
+                if (spawner.isWoolItem(item)) {
+                    spawner.removeWoolItem(item);
+                    item.remove();
+                    plugin.getGameManager().collectWool(player);
+                    player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1.0f, 1.5f);
+                }
+            }
         }
     }
 
@@ -61,7 +60,7 @@ public class EventListener implements Listener {
         Player player = event.getPlayer();
 
         if (plugin.getGameManager().isInGame(player)) {
-            plugin.getGameManager().leaveGame(player);
+            plugin.getGameManager().handlePlayerQuit(player);
         }
     }
 }

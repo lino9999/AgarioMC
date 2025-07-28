@@ -4,22 +4,24 @@ import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
+import org.bukkit.entity.Item;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.Vector;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
 public class WoolSpawner {
     private final AgarioMC plugin;
-    private final Set<Location> woolBlocks;
+    private final Set<Item> woolItems;
     private BukkitTask spawnTask;
-    private static final int MAX_WOOL_BLOCKS = 100;
+    private static final int MAX_WOOL_ITEMS = 100;
     private static final long SPAWN_INTERVAL = 20L;
 
     public WoolSpawner(AgarioMC plugin) {
         this.plugin = plugin;
-        this.woolBlocks = new HashSet<>();
+        this.woolItems = new HashSet<>();
     }
 
     public void startSpawning() {
@@ -27,27 +29,30 @@ public class WoolSpawner {
             Arena arena = plugin.getArenaManager().getCurrentArena();
             if (arena == null) return;
 
-            if (woolBlocks.size() < MAX_WOOL_BLOCKS) {
-                spawnWoolBlock(arena);
+            if (woolItems.size() < MAX_WOOL_ITEMS) {
+                spawnWoolItem(arena);
             }
 
-            validateWoolBlocks();
+            validateWoolItems();
         }, 0L, SPAWN_INTERVAL);
     }
 
-    private void spawnWoolBlock(Arena arena) {
+    private void spawnWoolItem(Arena arena) {
         for (int attempts = 0; attempts < 10; attempts++) {
             Location location = arena.getRandomLocation();
-            Block block = location.getBlock();
 
-            if (block.getType() == Material.AIR && isValidSpawnLocation(block)) {
-                DyeColor[] colors = DyeColor.values();
-                DyeColor randomColor = colors[(int)(Math.random() * colors.length)];
+            DyeColor[] colors = DyeColor.values();
+            DyeColor randomColor = colors[(int)(Math.random() * colors.length)];
 
-                block.setType(getWoolMaterial(randomColor));
-                woolBlocks.add(block.getLocation());
-                break;
-            }
+            ItemStack woolItem = new ItemStack(getWoolMaterial(randomColor));
+            Item droppedItem = arena.getWorld().dropItem(location, woolItem);
+
+            droppedItem.setVelocity(new Vector(0, 0, 0));
+            droppedItem.setPickupDelay(0);
+            droppedItem.setGlowing(true);
+
+            woolItems.add(droppedItem);
+            break;
         }
     }
 
@@ -73,29 +78,23 @@ public class WoolSpawner {
         }
     }
 
-    private boolean isValidSpawnLocation(Block block) {
-        Block below = block.getRelative(0, -1, 0);
-        return below.getType().isSolid() && !below.getType().name().contains("WOOL");
-    }
-
-    private void validateWoolBlocks() {
-        Iterator<Location> iterator = woolBlocks.iterator();
+    private void validateWoolItems() {
+        Iterator<Item> iterator = woolItems.iterator();
         while (iterator.hasNext()) {
-            Location location = iterator.next();
-            Block block = location.getBlock();
+            Item item = iterator.next();
 
-            if (!block.getType().name().contains("WOOL")) {
+            if (!item.isValid() || item.isDead()) {
                 iterator.remove();
             }
         }
     }
 
-    public void removeWoolBlock(Location location) {
-        woolBlocks.remove(location);
+    public void removeWoolItem(Item item) {
+        woolItems.remove(item);
     }
 
-    public boolean isWoolBlock(Location location) {
-        return woolBlocks.contains(location);
+    public boolean isWoolItem(Item item) {
+        return woolItems.contains(item);
     }
 
     public void cleanup() {
@@ -103,9 +102,11 @@ public class WoolSpawner {
             spawnTask.cancel();
         }
 
-        for (Location location : woolBlocks) {
-            location.getBlock().setType(Material.AIR);
+        for (Item item : woolItems) {
+            if (item.isValid()) {
+                item.remove();
+            }
         }
-        woolBlocks.clear();
+        woolItems.clear();
     }
 }

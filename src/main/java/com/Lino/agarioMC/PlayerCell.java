@@ -25,7 +25,9 @@ public class PlayerCell {
     private DyeColor getRandomColor() {
         DyeColor[] colors = {DyeColor.RED, DyeColor.BLUE, DyeColor.GREEN,
                 DyeColor.YELLOW, DyeColor.PURPLE, DyeColor.ORANGE,
-                DyeColor.PINK, DyeColor.CYAN, DyeColor.LIME};
+                DyeColor.PINK, DyeColor.CYAN, DyeColor.LIME,
+                DyeColor.MAGENTA, DyeColor.LIGHT_BLUE, DyeColor.GRAY,
+                DyeColor.LIGHT_GRAY, DyeColor.BROWN, DyeColor.BLACK};
         return colors[(int)(Math.random() * colors.length)];
     }
 

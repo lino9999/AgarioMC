@@ -53,6 +53,13 @@ public class GameManager {
         plugin.getScoreboardManager().addPlayer(player);
         plugin.getScoreboardManager().updateScore(player, cell.getMass());
 
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (player.isOnline()) {
+                cellRenderer.renderCell(player, cell);
+                player.sendMessage("§7Cell rendered at " + player.getLocation().getBlockX() + ", " + player.getLocation().getBlockY() + ", " + player.getLocation().getBlockZ());
+            }
+        }, 10L);
+
         player.sendMessage("§aYou joined the game!");
 
         if (gameTask == null) {
@@ -68,6 +75,27 @@ public class GameManager {
 
         removePlayer(player);
         player.sendMessage("§aYou left the game!");
+    }
+
+    public void handlePlayerQuit(Player player) {
+        if (!playerCells.containsKey(player.getUniqueId())) {
+            return;
+        }
+
+        PlayerCell cell = playerCells.get(player.getUniqueId());
+        if (cell != null) {
+            cellRenderer.clearCell(cell);
+        }
+
+        playerCells.remove(player.getUniqueId());
+        originalLocations.remove(player.getUniqueId());
+        originalGameModes.remove(player.getUniqueId());
+
+        if (playerCells.isEmpty() && gameTask != null) {
+            gameTask.cancel();
+            gameTask = null;
+            woolSpawner.cleanup();
+        }
     }
 
     private void removePlayer(Player player) {
@@ -102,8 +130,10 @@ public class GameManager {
         woolSpawner.startSpawning();
 
         gameTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            for (PlayerCell cell : playerCells.values()) {
-                Player player = Bukkit.getPlayer(cell.getPlayerId());
+            for (Map.Entry<UUID, PlayerCell> entry : playerCells.entrySet()) {
+                Player player = Bukkit.getPlayer(entry.getKey());
+                PlayerCell cell = entry.getValue();
+
                 if (player == null || !player.isOnline()) {
                     continue;
                 }
@@ -159,6 +189,10 @@ public class GameManager {
 
     public boolean isInGame(Player player) {
         return playerCells.containsKey(player.getUniqueId());
+    }
+
+    public WoolSpawner getWoolSpawner() {
+        return woolSpawner;
     }
 
     public void shutdown() {

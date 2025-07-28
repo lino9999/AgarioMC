@@ -12,7 +12,7 @@ public class AgarioMC extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-        arenaManager = new ArenaManager();
+        arenaManager = new ArenaManager(this);
         gameManager = new GameManager(this);
         scoreboardManager = new ScoreboardManager();
 
