@@ -1,0 +1,19 @@
+name: AgarioMC
+version: '1.0'
+main: com.Lino.agarioMC.AgarioMC
+api-version: '1.21'
+author: Lino
+description: Agar.io game mode for Minecraft
+
+commands:
+  agario:
+    description: Main command for AgarioMC
+    usage: /<command> [join|leave|pos1|pos2|create]
+
+permissions:
+  agariomc.admin:
+    description: Allows admin commands
+    default: op
+  agariomc.play:
+    description: Allows playing the game
+    default: true
