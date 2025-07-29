@@ -16,9 +16,9 @@ game:
   # Speed reduction settings
   speed:
     # Mass thresholds for speed reduction
-    slowness-1-mass: 15
-    slowness-2-mass: 30
-    slowness-3-mass: 50
+    slowness-1-mass: 30
+    slowness-2-mass: 50
+    slowness-3-mass: 70
 
 arena:
   # Maximum wool items in the arena
