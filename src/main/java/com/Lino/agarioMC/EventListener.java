@@ -43,7 +43,7 @@ public class EventListener implements Listener {
                 .map(entity -> (Item) entity)
                 .toList()) {
 
-            if (item.getItemStack().getType().name().contains("WOOL")) {
+            if (item.getItemStack().getType().name().contains("CARPET")) {
                 WoolSpawner spawner = plugin.getGameManager().getWoolSpawner();
                 if (spawner.isWoolItem(item)) {
                     spawner.removeWoolItem(item);

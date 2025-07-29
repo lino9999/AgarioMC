@@ -56,11 +56,12 @@ public class GameManager {
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (player.isOnline()) {
                 cellRenderer.renderCell(player, cell);
-                player.sendMessage("§7Cell rendered at " + player.getLocation().getBlockX() + ", " + player.getLocation().getBlockY() + ", " + player.getLocation().getBlockZ());
             }
         }, 10L);
 
         player.sendMessage("§aYou joined the game!");
+
+        cellRenderer.renderCell(player, cell);
 
         if (gameTask == null) {
             startGameLoop();
@@ -129,8 +130,10 @@ public class GameManager {
     private void startGameLoop() {
         woolSpawner.startSpawning();
 
+        plugin.getLogger().info("Starting game loop...");
+
         gameTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            for (Map.Entry<UUID, PlayerCell> entry : playerCells.entrySet()) {
+            for (Map.Entry<UUID, PlayerCell> entry : new HashMap<>(playerCells).entrySet()) {
                 Player player = Bukkit.getPlayer(entry.getKey());
                 PlayerCell cell = entry.getValue();
 
@@ -142,7 +145,7 @@ public class GameManager {
                 checkCollisions(player, cell);
                 plugin.getScoreboardManager().updateScore(player, cell.getMass());
             }
-        }, 0L, 5L);
+        }, 0L, 2L);
     }
 
     private void checkCollisions(Player player, PlayerCell cell) {

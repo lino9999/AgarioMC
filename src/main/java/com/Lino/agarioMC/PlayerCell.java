@@ -44,7 +44,7 @@ public class PlayerCell {
     }
 
     public int getRadius() {
-        return (int)Math.sqrt(mass) + 1;
+        return Math.max(2, (int)Math.sqrt(mass) + 1);
     }
 
     public UUID getPlayerId() {
