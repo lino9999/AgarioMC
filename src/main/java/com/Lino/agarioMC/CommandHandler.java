@@ -15,7 +15,7 @@ public class CommandHandler implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage("§cThis command can only be used by players!");
+            sender.sendMessage(plugin.getMessage("commands.console-only"));
             return true;
         }
 
@@ -29,7 +29,7 @@ public class CommandHandler implements CommandExecutor {
         switch (args[0].toLowerCase()) {
             case "pos1":
                 if (!player.hasPermission("agariomc.admin")) {
-                    player.sendMessage("§cYou don't have permission to use this command!");
+                    player.sendMessage(plugin.getMessage("commands.no-permission"));
                     return true;
                 }
                 plugin.getArenaManager().setFirstPosition(player, player.getLocation());
@@ -37,7 +37,7 @@ public class CommandHandler implements CommandExecutor {
 
             case "pos2":
                 if (!player.hasPermission("agariomc.admin")) {
-                    player.sendMessage("§cYou don't have permission to use this command!");
+                    player.sendMessage(plugin.getMessage("commands.no-permission"));
                     return true;
                 }
                 plugin.getArenaManager().setSecondPosition(player, player.getLocation());
@@ -45,7 +45,7 @@ public class CommandHandler implements CommandExecutor {
 
             case "create":
                 if (!player.hasPermission("agariomc.admin")) {
-                    player.sendMessage("§cYou don't have permission to use this command!");
+                    player.sendMessage(plugin.getMessage("commands.no-permission"));
                     return true;
                 }
                 plugin.getArenaManager().createArena(player);
@@ -59,6 +59,16 @@ public class CommandHandler implements CommandExecutor {
                 plugin.getGameManager().leaveGame(player);
                 break;
 
+            case "reload":
+                if (!player.hasPermission("agariomc.admin")) {
+                    player.sendMessage(plugin.getMessage("commands.no-permission"));
+                    return true;
+                }
+                plugin.reloadConfig();
+                plugin.reloadMessagesConfig();
+                player.sendMessage(plugin.getMessage("commands.config-reloaded"));
+                break;
+
             default:
                 showHelp(player);
                 break;
@@ -68,14 +78,15 @@ public class CommandHandler implements CommandExecutor {
     }
 
     private void showHelp(Player player) {
-        player.sendMessage("§6§lAgarioMC Commands:");
-        player.sendMessage("§e/agario join §7- Join the game");
-        player.sendMessage("§e/agario leave §7- Leave the game");
+        player.sendMessage(plugin.getMessage("commands.help.header"));
+        player.sendMessage(plugin.getMessage("commands.help.join"));
+        player.sendMessage(plugin.getMessage("commands.help.leave"));
 
         if (player.hasPermission("agariomc.admin")) {
-            player.sendMessage("§e/agario pos1 §7- Set first arena position");
-            player.sendMessage("§e/agario pos2 §7- Set second arena position");
-            player.sendMessage("§e/agario create §7- Create arena from selected positions");
+            player.sendMessage(plugin.getMessage("commands.help.pos1"));
+            player.sendMessage(plugin.getMessage("commands.help.pos2"));
+            player.sendMessage(plugin.getMessage("commands.help.create"));
+            player.sendMessage(plugin.getMessage("commands.help.reload"));
         }
     }
 }

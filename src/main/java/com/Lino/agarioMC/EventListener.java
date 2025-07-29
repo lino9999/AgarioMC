@@ -7,8 +7,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 public class EventListener implements Listener {
     private final AgarioMC plugin;
@@ -34,11 +38,13 @@ public class EventListener implements Listener {
         Arena arena = plugin.getArenaManager().getCurrentArena();
         if (arena != null && arena.isInArena(event.getFrom()) && !arena.isInArena(event.getTo())) {
             event.setCancelled(true);
-            player.sendMessage("§cYou cannot leave the arena!");
+            player.sendMessage(plugin.getMessage("arena.cannot-leave"));
             return;
         }
 
-        for (Item item : player.getNearbyEntities(1.5, 1.5, 1.5).stream()
+        double collisionRadius = plugin.getConfig().getDouble("rendering.collision-radius", 1.5);
+
+        for (Item item : player.getNearbyEntities(collisionRadius, collisionRadius, collisionRadius).stream()
                 .filter(entity -> entity instanceof Item)
                 .map(entity -> (Item) entity)
                 .toList()) {
@@ -61,6 +67,35 @@ public class EventListener implements Listener {
 
         if (plugin.getGameManager().isInGame(player)) {
             plugin.getGameManager().handlePlayerQuit(player);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onEntityPickupItem(EntityPickupItemEvent event) {
+        if (!(event.getEntity() instanceof Player)) {
+            return;
+        }
+
+        Player player = (Player) event.getEntity();
+
+        if (plugin.getGameManager().isInGame(player)) {
+            if (event.getItem().getItemStack().getType().name().contains("CARPET")) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onFoodLevelChange(FoodLevelChangeEvent event) {
+        if (!(event.getEntity() instanceof Player)) {
+            return;
+        }
+
+        Player player = (Player) event.getEntity();
+
+        if (plugin.getGameManager().isInGame(player)) {
+            event.setCancelled(true);
+            player.setFoodLevel(20);
         }
     }
 }

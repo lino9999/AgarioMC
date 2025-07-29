@@ -8,7 +8,7 @@ description: Agar.io game mode for Minecraft
 commands:
   agario:
     description: Main command for AgarioMC
-    usage: /<command> [join|leave|pos1|pos2|create]
+    usage: /<command> [join|leave|pos1|pos2|create|reload]
 
 permissions:
   agariomc.admin:

@@ -33,7 +33,7 @@ public class ArenaManager {
             try {
                 arenaFile.createNewFile();
             } catch (IOException e) {
-                plugin.getLogger().severe("Could not create arena.yml!");
+                plugin.getLogger().severe(plugin.getMessage("plugin.arena-file-error"));
             }
         }
         arenaConfig = YamlConfiguration.loadConfiguration(arenaFile);
@@ -42,25 +42,25 @@ public class ArenaManager {
     public void setFirstPosition(Player player, Location location) {
         Location[] positions = selectionCache.computeIfAbsent(player.getUniqueId(), k -> new Location[2]);
         positions[0] = location;
-        player.sendMessage("§aFirst position set!");
+        player.sendMessage(plugin.getMessage("arena.pos1-set"));
     }
 
     public void setSecondPosition(Player player, Location location) {
         Location[] positions = selectionCache.computeIfAbsent(player.getUniqueId(), k -> new Location[2]);
         positions[1] = location;
-        player.sendMessage("§aSecond position set!");
+        player.sendMessage(plugin.getMessage("arena.pos2-set"));
     }
 
     public boolean createArena(Player player) {
         Location[] positions = selectionCache.get(player.getUniqueId());
 
         if (positions == null || positions[0] == null || positions[1] == null) {
-            player.sendMessage("§cYou must set both positions first!");
+            player.sendMessage(plugin.getMessage("arena.both-positions-required"));
             return false;
         }
 
         if (!positions[0].getWorld().equals(positions[1].getWorld())) {
-            player.sendMessage("§cBoth positions must be in the same world!");
+            player.sendMessage(plugin.getMessage("arena.same-world-required"));
             return false;
         }
 
@@ -68,7 +68,7 @@ public class ArenaManager {
         selectionCache.remove(player.getUniqueId());
 
         saveArena();
-        player.sendMessage("§aArena created successfully!");
+        player.sendMessage(plugin.getMessage("arena.created"));
         return true;
     }
 
@@ -86,7 +86,7 @@ public class ArenaManager {
         try {
             arenaConfig.save(arenaFile);
         } catch (IOException e) {
-            plugin.getLogger().severe("Could not save arena to file!");
+            plugin.getLogger().severe(plugin.getMessage("plugin.arena-save-error"));
         }
     }
 
@@ -97,7 +97,7 @@ public class ArenaManager {
         World world = Bukkit.getWorld(worldName);
 
         if (world == null) {
-            plugin.getLogger().warning("Arena world '" + worldName + "' not found!");
+            plugin.getLogger().warning(plugin.getMessage("plugin.arena-world-not-found", "{world}", worldName));
             return;
         }
 
@@ -112,7 +112,7 @@ public class ArenaManager {
         Location pos2 = new Location(world, x2, y2, z2);
 
         currentArena = new Arena(pos1, pos2);
-        plugin.getLogger().info("Arena loaded successfully!");
+        plugin.getLogger().info(plugin.getMessage("plugin.arena-loaded"));
     }
 
     public Arena getCurrentArena() {

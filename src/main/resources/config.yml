@@ -1,0 +1,35 @@
+# AgarioMC Configuration File
+
+game:
+  # Starting mass for new players
+  starting-mass: 1
+
+  # Mass gained per wool collected
+  mass-per-wool: 1
+
+  # Minimum mass ratio required to eat another player (1.1 = 10% bigger)
+  eat-ratio: 1.1
+
+  # Radius calculation formula: sqrt(mass) + base-radius
+  base-radius: 1
+
+  # Speed reduction settings
+  speed:
+    # Mass thresholds for speed reduction
+    slowness-1-mass: 15
+    slowness-2-mass: 30
+    slowness-3-mass: 50
+
+arena:
+  # Maximum wool items in the arena
+  max-wool-items: 100
+
+  # Wool spawn interval in ticks (20 ticks = 1 second)
+  wool-spawn-interval: 20
+
+rendering:
+  # Update interval for cell rendering in ticks
+  render-interval: 2
+
+  # Collision check radius multiplier
+  collision-radius: 1.5

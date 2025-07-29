@@ -1,0 +1,46 @@
+# AgarioMC Messages Configuration
+
+prefix: "&6&lAgarioMC &8» &r"
+
+commands:
+  console-only: "&cThis command can only be used by players!"
+  no-permission: "&cYou don't have permission to use this command!"
+  config-reloaded: "&aConfiguration files have been reloaded!"
+  help:
+    header: "&6&lAgarioMC Commands:"
+    join: "&e/agario join &7- Join the game"
+    leave: "&e/agario leave &7- Leave the game"
+    pos1: "&e/agario pos1 &7- Set first arena position"
+    pos2: "&e/agario pos2 &7- Set second arena position"
+    create: "&e/agario create &7- Create arena from selected positions"
+    reload: "&e/agario reload &7- Reload configuration files"
+
+arena:
+  pos1-set: "&aFirst position set!"
+  pos2-set: "&aSecond position set!"
+  both-positions-required: "&cYou must set both positions first!"
+  same-world-required: "&cBoth positions must be in the same world!"
+  created: "&aArena created successfully!"
+  not-setup: "&cNo arena has been set up!"
+  cannot-leave: "&cYou cannot leave the arena!"
+
+game:
+  already-in-game: "&cYou are already in the game!"
+  not-in-game: "&cYou are not in the game!"
+  joined: "&aYou joined the game!"
+  left: "&aYou left the game!"
+  player-eaten: "&aYou ate {player}!"
+  eaten-by-player: "&cYou were eaten by {player}!"
+
+scoreboard:
+  title: "&6&lAgarioMC Leaderboard"
+  player-format: "&f{player}"
+
+plugin:
+  enabled: "AgarioMC has been enabled!"
+  disabled: "AgarioMC has been disabled!"
+  arena-loaded: "Arena loaded successfully!"
+  arena-world-not-found: "Arena world '{world}' not found!"
+  arena-file-error: "Could not create arena.yml!"
+  arena-save-error: "Could not save arena to file!"
+  game-loop-start: "Starting game loop..."

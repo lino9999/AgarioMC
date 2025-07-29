@@ -16,7 +16,7 @@ public class PlayerCell {
 
     public PlayerCell(Player player) {
         this.playerId = player.getUniqueId();
-        this.mass = 1;
+        this.mass = AgarioMC.getInstance().getConfig().getInt("game.starting-mass", 1);
         this.color = getRandomColor();
         this.cellBlocks = new HashSet<>();
         this.lastLocation = player.getLocation();
@@ -44,7 +44,8 @@ public class PlayerCell {
     }
 
     public int getRadius() {
-        return Math.max(2, (int)Math.sqrt(mass) + 1);
+        int baseRadius = AgarioMC.getInstance().getConfig().getInt("game.base-radius", 1);
+        return Math.max(2, (int)Math.sqrt(mass) + baseRadius);
     }
 
     public UUID getPlayerId() {
@@ -72,6 +73,7 @@ public class PlayerCell {
     }
 
     public boolean canEat(PlayerCell other) {
-        return this.mass > other.mass * 1.1;
+        double eatRatio = AgarioMC.getInstance().getConfig().getDouble("game.eat-ratio", 1.1);
+        return this.mass > other.mass * eatRatio;
     }
 }

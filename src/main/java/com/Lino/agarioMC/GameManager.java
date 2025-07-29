@@ -4,6 +4,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,12 +32,12 @@ public class GameManager {
     public void joinGame(Player player) {
         Arena arena = plugin.getArenaManager().getCurrentArena();
         if (arena == null) {
-            player.sendMessage("§cNo arena has been set up!");
+            player.sendMessage(plugin.getMessage("arena.not-setup"));
             return;
         }
 
         if (playerCells.containsKey(player.getUniqueId())) {
-            player.sendMessage("§cYou are already in the game!");
+            player.sendMessage(plugin.getMessage("game.already-in-game"));
             return;
         }
 
@@ -47,8 +49,9 @@ public class GameManager {
 
         player.teleport(arena.getSpawnLocation());
         player.setGameMode(GameMode.ADVENTURE);
-        player.setHealth(20);
+        player.setHealth(player.getMaxHealth());
         player.setFoodLevel(20);
+        player.setSaturation(20);
 
         plugin.getScoreboardManager().addPlayer(player);
         plugin.getScoreboardManager().updateScore(player, cell.getMass());
@@ -59,7 +62,7 @@ public class GameManager {
             }
         }, 10L);
 
-        player.sendMessage("§aYou joined the game!");
+        player.sendMessage(plugin.getMessage("game.joined"));
 
         cellRenderer.renderCell(player, cell);
 
@@ -70,12 +73,12 @@ public class GameManager {
 
     public void leaveGame(Player player) {
         if (!playerCells.containsKey(player.getUniqueId())) {
-            player.sendMessage("§cYou are not in the game!");
+            player.sendMessage(plugin.getMessage("game.not-in-game"));
             return;
         }
 
         removePlayer(player);
-        player.sendMessage("§aYou left the game!");
+        player.sendMessage(plugin.getMessage("game.left"));
     }
 
     public void handlePlayerQuit(Player player) {
@@ -91,6 +94,8 @@ public class GameManager {
         playerCells.remove(player.getUniqueId());
         originalLocations.remove(player.getUniqueId());
         originalGameModes.remove(player.getUniqueId());
+
+        plugin.getScoreboardManager().removePlayer(player);
 
         if (playerCells.isEmpty() && gameTask != null) {
             gameTask.cancel();
@@ -120,6 +125,10 @@ public class GameManager {
             player.setGameMode(originalGameMode);
         }
 
+        for (PotionEffect effect : player.getActivePotionEffects()) {
+            player.removePotionEffect(effect.getType());
+        }
+
         if (playerCells.isEmpty() && gameTask != null) {
             gameTask.cancel();
             gameTask = null;
@@ -130,7 +139,9 @@ public class GameManager {
     private void startGameLoop() {
         woolSpawner.startSpawning();
 
-        plugin.getLogger().info("Starting game loop...");
+        plugin.getLogger().info(plugin.getMessage("plugin.game-loop-start"));
+
+        long renderInterval = plugin.getConfig().getLong("rendering.render-interval", 2L);
 
         gameTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             for (Map.Entry<UUID, PlayerCell> entry : new HashMap<>(playerCells).entrySet()) {
@@ -143,12 +154,43 @@ public class GameManager {
 
                 cellRenderer.renderCell(player, cell);
                 checkCollisions(player, cell);
+                updatePlayerSpeed(player, cell);
                 plugin.getScoreboardManager().updateScore(player, cell.getMass());
             }
-        }, 0L, 2L);
+        }, 0L, renderInterval);
+    }
+
+    private void updatePlayerSpeed(Player player, PlayerCell cell) {
+        for (PotionEffect effect : player.getActivePotionEffects()) {
+            if (effect.getType().equals(PotionEffectType.SLOWNESS)) {
+                player.removePotionEffect(PotionEffectType.SLOWNESS);
+            }
+        }
+
+        int mass = cell.getMass();
+        int slow1Mass = plugin.getConfig().getInt("game.speed.slowness-1-mass", 15);
+        int slow2Mass = plugin.getConfig().getInt("game.speed.slowness-2-mass", 30);
+        int slow3Mass = plugin.getConfig().getInt("game.speed.slowness-3-mass", 50);
+
+        if (mass > slow1Mass) {
+            int slowLevel = 0;
+            if (mass > slow3Mass) {
+                slowLevel = 3;
+            } else if (mass > slow2Mass) {
+                slowLevel = 2;
+            } else {
+                slowLevel = 1;
+            }
+
+            if (slowLevel > 0) {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40, slowLevel - 1, false, false));
+            }
+        }
     }
 
     private void checkCollisions(Player player, PlayerCell cell) {
+        double collisionRadius = plugin.getConfig().getDouble("rendering.collision-radius", 1.5);
+
         for (PlayerCell otherCell : playerCells.values()) {
             if (cell.getPlayerId().equals(otherCell.getPlayerId())) {
                 continue;
@@ -164,8 +206,8 @@ public class GameManager {
             if (distance < cell.getRadius() && cell.canEat(otherCell)) {
                 cell.addMass(otherCell.getMass());
                 respawnPlayer(otherPlayer);
-                player.sendMessage("§aYou ate " + otherPlayer.getName() + "!");
-                otherPlayer.sendMessage("§cYou were eaten by " + player.getName() + "!");
+                player.sendMessage(plugin.getMessage("game.player-eaten", "{player}", otherPlayer.getName()));
+                otherPlayer.sendMessage(plugin.getMessage("game.eaten-by-player", "{player}", player.getName()));
             }
         }
     }
@@ -175,7 +217,7 @@ public class GameManager {
         if (cell == null) return;
 
         cellRenderer.clearCell(cell);
-        cell.setMass(1);
+        cell.setMass(plugin.getConfig().getInt("game.starting-mass", 1));
 
         Arena arena = plugin.getArenaManager().getCurrentArena();
         if (arena != null) {
@@ -186,7 +228,8 @@ public class GameManager {
     public void collectWool(Player player) {
         PlayerCell cell = playerCells.get(player.getUniqueId());
         if (cell != null) {
-            cell.addMass(1);
+            int massPerWool = plugin.getConfig().getInt("game.mass-per-wool", 1);
+            cell.addMass(massPerWool);
         }
     }
 

@@ -16,8 +16,6 @@ public class WoolSpawner {
     private final AgarioMC plugin;
     private final Set<Item> woolItems;
     private BukkitTask spawnTask;
-    private static final int MAX_WOOL_ITEMS = 100;
-    private static final long SPAWN_INTERVAL = 20L;
 
     public WoolSpawner(AgarioMC plugin) {
         this.plugin = plugin;
@@ -25,16 +23,20 @@ public class WoolSpawner {
     }
 
     public void startSpawning() {
+        long spawnInterval = plugin.getConfig().getLong("arena.wool-spawn-interval", 20L);
+
         spawnTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             Arena arena = plugin.getArenaManager().getCurrentArena();
             if (arena == null) return;
 
-            if (woolItems.size() < MAX_WOOL_ITEMS) {
+            int maxWoolItems = plugin.getConfig().getInt("arena.max-wool-items", 100);
+
+            if (woolItems.size() < maxWoolItems) {
                 spawnWoolItem(arena);
             }
 
             validateWoolItems();
-        }, 0L, SPAWN_INTERVAL);
+        }, 0L, spawnInterval);
     }
 
     private void spawnWoolItem(Arena arena) {
@@ -48,8 +50,9 @@ public class WoolSpawner {
             Item droppedItem = arena.getWorld().dropItem(location, woolItem);
 
             droppedItem.setVelocity(new Vector(0, 0, 0));
-            droppedItem.setPickupDelay(0);
+            droppedItem.setPickupDelay(Integer.MAX_VALUE);
             droppedItem.setGlowing(true);
+            droppedItem.setInvulnerable(true);
 
             woolItems.add(droppedItem);
             break;
